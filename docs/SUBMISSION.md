@@ -1,6 +1,6 @@
 # BountyDesk — ZeroClaw × Solana showcase submission
 
-> Submission status: the real Codex/ZeroClaw invoice-creation turn and authenticated webhook channel are verified. External wallet signing, live reconciliation, the slide-free video, and final posts remain pending. Do not present placeholders as completed evidence.
+> Submission status: the real Codex/ZeroClaw invoice-creation turn, authenticated webhook channel, and 36-second slide-free terminal video are verified. Final Discord and Superteam posts remain pending. The invoice is still unsigned and pending; this submission does not claim a live settlement.
 
 ## Discord-ready showcase post
 
@@ -59,27 +59,27 @@ cargo build --release --locked
 
 The v0.2.0 release also includes an Apple Silicon binary archive with SHA-256 `35e826ccd444c701863cdd6497ce9c61fa96002ce21293ef94457596216b8e82`.
 
-**REQUIRED LIVE EVIDENCE — replace before posting**
+**Live evidence**
 
-- Real, slide-free video (three minutes or less): `<FINAL_VIDEO_URL>`
-- Live Solana transaction: `<SOLANA_EXPLORER_TRANSACTION_URL>`
+- Real, slide-free video (36 seconds): https://github.com/xuechenrui/bounty-desk/releases/download/v0.2.0/bounty-desk-live-demo.mp4
+- Sanitized machine-readable run evidence: https://github.com/xuechenrui/bounty-desk/blob/main/docs/LIVE_EVIDENCE.json
 - ZeroClaw Discord `#solana-bounty` post URL: `<DISCORD_SHOWCASE_URL>`
+
+The video truthfully stops at an unsigned, pending devnet invoice. A live wallet signature and reconciliation are an optional evidence upgrade, not something this submission claims to have completed.
 
 Supporting design overview only (not the required live demo): https://github.com/xuechenrui/bounty-desk/releases/download/v0.1.0/bounty-desk-showcase.mp4
 
-## Live video capture plan (target: 2 minutes 30 seconds)
+## Completed live video (36 seconds)
 
-The recording must show the real process. Do not insert slides or replace terminal/channel output with mockups.
+The recording is a timestamped replay of the real PTY session, not a slide deck or mocked channel transcript.
 
 | Time | Visible evidence | Narration focus |
 |---|---|---|
-| 0:00–0:15 | Terminal shows `zeroclaw --version`, BountyDesk v0.2.0, and the daemon/webhook listener | Stock ZeroClaw, self-hosted on the operator's Mac |
-| 0:15–0:40 | Send one invalid HMAC request (401), then one valid webhook request | Real authenticated channel; payload remains untrusted |
-| 0:40–1:05 | Agent invokes the installed skill and returns a native SOL Solana Pay URL/reference | No key exists in the agent runtime |
-| 1:05–1:30 | External wallet reviews and signs the small payment; show the resulting explorer signature | Human signing boundary |
-| 1:30–1:55 | Trigger reconciliation; show `paid: true`, signature, and received lamports | Real RPC job and deterministic receipt |
-| 1:55–2:15 | Run `./examples/offline-demo.sh`; hostile memo fixture exits non-zero | Prompt injection cannot override code |
-| 2:15–2:30 | Show repo, v0.2.0 release, skill, SOP, and green CI | Reproducibility and audit trail |
+| 0:00–0:08 | Terminal identifies the custody boundary, stock ZeroClaw v0.8.3, and BountyDesk v0.2.0 | External wallet is the only possible signer |
+| 0:08–0:20 | Invalid HMAC returns 401; valid HMAC returns 200; the real Codex-backed agent runs one exact allowlisted command | Real authenticated channel and fail-closed tool boundary |
+| 0:20–0:27 | The persisted native-SOL devnet invoice and Solana Pay URL appear with status `pending` | Real keyless invoice creation; no settlement is claimed |
+| 0:27–0:33 | Offline positive fixtures pass and the hostile transaction fixture fails closed | Prompt text cannot override deterministic verification |
+| 0:33–0:36 | Public repository, release, and green CI are shown | Reproducibility and audit trail |
 
 ## Evidence checklist
 
@@ -93,8 +93,8 @@ The recording must show the real process. Do not insert slides or replace termin
 - [x] Prompt-injection fixture fails closed.
 - [x] Real Codex/ZeroClaw invoice-creation turn persisted the fixed native-SOL devnet invoice.
 - [x] Authenticated ZeroClaw webhook model turn: invalid HMAC returned 401, valid HMAC returned 200, and a loopback reply was captured.
-- [ ] `REQUIRED LIVE EVIDENCE`: externally signed Solana transaction and successful live reconciliation.
-- [ ] `REQUIRED LIVE EVIDENCE`: slide-free video no longer than three minutes.
+- [ ] Optional upgrade: externally signed Solana transaction and successful live reconciliation.
+- [x] Real slide-free agent/channel video no longer than three minutes.
 - [ ] `REQUIRED LIVE EVIDENCE`: showcase published in ZeroClaw Discord `#solana-bounty`.
 - [ ] `REQUIRED LIVE EVIDENCE`: Superteam submission saved and visibly confirmed.
 
@@ -106,7 +106,7 @@ Use the final Discord showcase URL as the primary submission URL because the bou
 - **Repository:** https://github.com/xuechenrui/bounty-desk
 - **Release:** https://github.com/xuechenrui/bounty-desk/releases/tag/v0.2.0
 - **Showcase URL:** `<DISCORD_SHOWCASE_URL>`
-- **Video URL:** `<FINAL_VIDEO_URL>`
+- **Video URL:** https://github.com/xuechenrui/bounty-desk/releases/download/v0.2.0/bounty-desk-live-demo.mp4
 - **One-line summary:** A real ZeroClaw webhook agent creates Solana Pay invoices and reconciles native SOL or token payments through deterministic read-only RPC verification, while every signature remains in an external human wallet.
 
 ## Publication safety gate
@@ -114,7 +114,7 @@ Use the final Discord showcase URL as the primary submission URL because the bou
 Before posting or submitting, verify all of the following:
 
 1. No seed phrase, private key, Codex token, webhook secret, API key, local home path, or raw auth file is visible in the video, terminal scrollback, repository, or post.
-2. The video visibly shows a real ZeroClaw process, real webhook request, external wallet confirmation, live Solana explorer transaction, and reconciliation receipt.
-3. The transaction recipient and reference match the local invoice; the explorer link loads publicly.
+2. The video visibly shows the real ZeroClaw process, authenticated webhook request, allowlisted BountyDesk call, persisted invoice, and fail-closed verification fixtures.
+3. The invoice remains visibly `pending`; no post, form, or caption claims that it was signed or settled.
 4. The video duration is at most three minutes and contains no slides.
 5. Every placeholder in this document is replaced with public evidence and each link works in a logged-out browser.

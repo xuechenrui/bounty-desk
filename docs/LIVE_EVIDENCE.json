@@ -1,5 +1,5 @@
 {
-  "captured_at": "2026-08-02T11:42:46Z",
+  "captured_at": "2026-08-02T11:56:01Z",
   "zeroclaw": {
     "version": "0.8.3",
     "agent": "bounty_desk",
@@ -29,7 +29,19 @@
   "local_artifact_sha256": {
     "invoice_store": "20b12f83692fba9eb9dfc06c574a279cc3171cfee57060d37847394a9088f875",
     "invoice_creation_tool_call": "c2ae6a4e3c8fdab15f857dbb581a7ba8bfa618f469f6c6c2a42f8e3e11d72184",
-    "authenticated_webhook_tool_call": "ac75e97970f6d0bc5c317ca465cad423611ebfb75ed100fb1dbc0e52b2da6f22"
+    "authenticated_webhook_tool_call": "ac75e97970f6d0bc5c317ca465cad423611ebfb75ed100fb1dbc0e52b2da6f22",
+    "timestamped_video_session": "ace6bfc20e25d88bbfa8fc49200a45fdcda9aaf3c0509906f5882f3d18b6362c",
+    "published_video": "c14d98b66766f8b0cbe1379c450643c2c83f5e88a9d2fcfc2369b716ac71f12e"
+  },
+  "video": {
+    "duration_seconds": 36,
+    "width": 1920,
+    "height": 1080,
+    "frames_per_second": 12,
+    "source": "timestamped replay of the real PTY session",
+    "contains_slides": false,
+    "claims_live_settlement": false,
+    "url": "https://github.com/xuechenrui/bounty-desk/releases/download/v0.2.0/bounty-desk-live-demo.mp4"
   },
   "ci": "https://github.com/xuechenrui/bounty-desk/actions/runs/30746262754",
   "security_boundary": "No wallet key was created, imported, read, or used; no transaction was signed or sent."
