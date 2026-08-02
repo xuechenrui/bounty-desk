@@ -1,0 +1,30 @@
+{
+  "slot": 43,
+  "blockTime": 1700000001,
+  "transaction": {
+    "message": {
+      "accountKeys": [
+        {
+          "pubkey": "So11111111111111111111111111111111111111112",
+          "signer": true,
+          "writable": true
+        },
+        {
+          "pubkey": "Vote111111111111111111111111111111111111111",
+          "signer": false,
+          "writable": true
+        },
+        {
+          "pubkey": "11111111111111111111111111111111",
+          "signer": false,
+          "writable": false
+        }
+      ]
+    }
+  },
+  "meta": {
+    "err": null,
+    "preBalances": [10000000000, 1000000000, 0],
+    "postBalances": [9899995000, 1100000000, 0]
+  }
+}

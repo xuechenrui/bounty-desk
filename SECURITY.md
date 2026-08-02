@@ -8,7 +8,7 @@ The binary contains no command that generates/imports a wallet, reads a key file
 
 ## Protected assets
 
-- The operator's Solana recipient address and expected token mint.
+- The operator's Solana recipient address and expected asset (native SOL or exact token mint).
 - Invoice amount and unique reference.
 - Settlement status and transaction signature.
 - The payer's funds and wallet approval boundary.
@@ -23,7 +23,7 @@ There are no application secrets. Public addresses, invoice metadata, RPC respon
 | Invoice database | Local trusted state | Versioned JSON, atomic replacement, duplicate ID/reference rejection |
 | Solana RPC response | Untrusted | Parsed with strict structural checks; mismatch remains pending |
 | Transaction memo/instruction text | Hostile data | Never read by the verifier |
-| SOP trigger payload | Untrusted | Must not alter the binary path, database path, recipient, mint, amount, or RPC arguments |
+| SOP trigger payload | Untrusted | Must not alter the binary path, database path, recipient, asset, amount, or RPC arguments |
 | Wallet UI | External human boundary | The user reviews and signs; BountyDesk never automates approval |
 
 ## Settlement invariants
@@ -32,9 +32,9 @@ A receipt is emitted only after all of these are true:
 
 1. `meta.err` is null.
 2. The invoice reference is present in parsed transaction account keys.
-3. Pre/post token balance entries belong to the pinned recipient.
-4. Those entries use the pinned token mint.
-5. Their summed raw integer delta is positive and at least the pinned `amount_units`.
+3. For native SOL, the pinned recipient's account balance delta is computed at its exact account-key index.
+4. For SPL tokens, pre/post token balance entries belong to the pinned recipient and use the pinned mint.
+5. The applicable raw integer balance delta is positive and at least the pinned `amount_units`.
 6. The RPC response contains a slot and a confirmed signature candidate.
 
 Malformed RPC results return an error. A missing transaction, failed transaction, reference mismatch, wrong recipient, wrong mint, underpayment, or hostile memo returns no proof and leaves the invoice pending.
@@ -70,7 +70,7 @@ For production, use a trusted Solana RPC provider, run the binary under a dedica
 - A malicious or faulty RPC could omit payments and delay reconciliation. Cross-provider confirmation is not implemented in v0.1.
 - Acceptance uses a confirmed commitment; operators requiring stronger finality should wait for finalized status or add a second confirmation pass.
 - Overpayments are accepted and recorded as the observed raw delta.
-- Token metadata is not consulted; the operator must configure the intended mint and decimals correctly.
+- Token metadata is not consulted; the operator must configure the intended mint and decimals correctly. Native SOL is fixed to nine decimals.
 
 ## Reporting
 

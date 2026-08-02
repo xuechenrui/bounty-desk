@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use bounty_desk::{
     settle, verify_transaction, Cluster, InvoiceStatus, InvoiceStore, NewInvoice, RpcClient,
-    DEFAULT_USDC_DECIMALS,
+    DEFAULT_USDC_DECIMALS, SOL_DECIMALS,
 };
 use clap::{Parser, Subcommand, ValueEnum};
 use serde::Serialize;
@@ -21,16 +21,22 @@ struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum Command {
-    /// Create a keyless Solana Pay SPL-token invoice.
+    /// Create a keyless Solana Pay invoice for native SOL or an SPL token.
     Create {
         #[arg(long)]
         recipient: String,
         #[arg(long)]
         amount: String,
+        #[arg(
+            long,
+            required_unless_present = "native_sol",
+            conflicts_with = "native_sol"
+        )]
+        token_mint: Option<String>,
+        #[arg(long, conflicts_with = "token_mint")]
+        native_sol: bool,
         #[arg(long)]
-        token_mint: String,
-        #[arg(long, default_value_t = DEFAULT_USDC_DECIMALS)]
-        decimals: u8,
+        decimals: Option<u8>,
         #[arg(long, value_enum, default_value_t = Network::MainnetBeta)]
         network: Network,
         #[arg(long)]
@@ -60,8 +66,14 @@ enum Command {
         file: PathBuf,
         #[arg(long)]
         recipient: String,
-        #[arg(long)]
-        token_mint: String,
+        #[arg(
+            long,
+            required_unless_present = "native_sol",
+            conflicts_with = "native_sol"
+        )]
+        token_mint: Option<String>,
+        #[arg(long, conflicts_with = "token_mint")]
+        native_sol: bool,
         #[arg(long)]
         reference: String,
         #[arg(long)]
@@ -102,18 +114,25 @@ fn run() -> Result<()> {
             recipient,
             amount,
             token_mint,
+            native_sol,
             decimals,
             network,
             id,
             label,
             message,
         } => {
+            let decimals = decimals.unwrap_or(if native_sol {
+                SOL_DECIMALS
+            } else {
+                DEFAULT_USDC_DECIMALS
+            });
             let invoice = NewInvoice {
                 id,
                 recipient,
                 amount,
                 decimals,
                 token_mint,
+                native_sol,
                 label,
                 message,
                 cluster: network.into(),
@@ -181,6 +200,7 @@ fn run() -> Result<()> {
             file,
             recipient,
             token_mint,
+            native_sol: _,
             reference,
             amount_units,
         } => {
@@ -188,7 +208,7 @@ fn run() -> Result<()> {
             let proof = verify_transaction(
                 &transaction,
                 &recipient,
-                &token_mint,
+                token_mint.as_deref(),
                 &reference,
                 amount_units,
             )?;

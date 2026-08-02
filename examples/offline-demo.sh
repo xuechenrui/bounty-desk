@@ -31,6 +31,13 @@ cargo build --quiet
   --reference "$reference" \
   --amount-units 50000000
 
+"$binary" verify-fixture \
+  --file tests/fixtures/valid_native_sol_payment.json \
+  --recipient "$recipient" \
+  --native-sol \
+  --reference "$reference" \
+  --amount-units 100000000
+
 if "$binary" verify-fixture \
   --file tests/fixtures/prompt_injection_attack.json \
   --recipient "$recipient" \

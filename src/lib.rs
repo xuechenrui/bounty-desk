@@ -11,6 +11,7 @@ use std::process::{Command, Stdio};
 
 pub const STORE_VERSION: u8 = 1;
 pub const DEFAULT_USDC_DECIMALS: u8 = 6;
+pub const SOL_DECIMALS: u8 = 9;
 pub const MAINNET_USDC_MINT: &str = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
@@ -43,7 +44,10 @@ pub struct Invoice {
     pub amount: String,
     pub amount_units: u64,
     pub decimals: u8,
-    pub token_mint: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub token_mint: Option<String>,
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub native_sol: bool,
     pub reference: String,
     pub label: String,
     pub message: String,
@@ -68,7 +72,8 @@ pub struct NewInvoice {
     pub recipient: String,
     pub amount: String,
     pub decimals: u8,
-    pub token_mint: String,
+    pub token_mint: Option<String>,
+    pub native_sol: bool,
     pub label: String,
     pub message: String,
     pub cluster: Cluster,
@@ -77,7 +82,7 @@ pub struct NewInvoice {
 impl NewInvoice {
     pub fn build(self) -> Result<Invoice> {
         validate_pubkey("recipient", &self.recipient)?;
-        validate_pubkey("token mint", &self.token_mint)?;
+        validate_asset(self.native_sol, self.token_mint.as_deref(), self.decimals)?;
         let amount_units = parse_amount(&self.amount, self.decimals)?;
         if amount_units == 0 {
             bail!("amount must be greater than zero");
@@ -86,12 +91,17 @@ impl NewInvoice {
         let id = self.id.unwrap_or_else(default_invoice_id);
         validate_invoice_id(&id)?;
         let amount = format_amount(amount_units, self.decimals);
-        let reference = derive_reference(&id, &self.recipient, &self.token_mint, amount_units);
+        let reference = derive_reference(
+            &id,
+            &self.recipient,
+            self.token_mint.as_deref(),
+            amount_units,
+        );
         let memo = format!("bounty-desk:{id}");
         let solana_pay_url = build_solana_pay_url(
             &self.recipient,
             &amount,
-            &self.token_mint,
+            self.token_mint.as_deref(),
             &reference,
             &self.label,
             &self.message,
@@ -105,6 +115,7 @@ impl NewInvoice {
             amount_units,
             decimals: self.decimals,
             token_mint: self.token_mint,
+            native_sol: self.native_sol,
             reference,
             label: self.label,
             message: self.message,
@@ -118,6 +129,12 @@ impl NewInvoice {
             confirmed_at: None,
             amount_received_units: None,
         })
+    }
+}
+
+impl Invoice {
+    fn validate_asset(&self) -> Result<()> {
+        validate_asset(self.native_sol, self.token_mint.as_deref(), self.decimals)
     }
 }
 
@@ -232,7 +249,7 @@ impl RpcClient {
                 "--header",
                 "Content-Type: application/json",
                 "--user-agent",
-                "bounty-desk/0.1.0",
+                concat!("bounty-desk/", env!("CARGO_PKG_VERSION")),
                 "--data-binary",
                 "@-",
                 &self.url,
@@ -269,6 +286,7 @@ impl RpcClient {
     }
 
     pub fn find_payment(&self, invoice: &Invoice) -> Result<Option<PaymentProof>> {
+        invoice.validate_asset()?;
         let signatures = self.call(
             "getSignaturesForAddress",
             json!([
@@ -302,7 +320,7 @@ impl RpcClient {
             if let Some(mut proof) = verify_transaction(
                 &transaction,
                 &invoice.recipient,
-                &invoice.token_mint,
+                invoice.token_mint.as_deref(),
                 &invoice.reference,
                 invoice.amount_units,
             )? {
@@ -347,7 +365,7 @@ pub fn settle(invoice: &mut Invoice, rpc: &RpcClient) -> Result<Option<PaymentPr
 pub fn verify_transaction(
     transaction: &Value,
     recipient: &str,
-    token_mint: &str,
+    token_mint: Option<&str>,
     reference: &str,
     required_units: u64,
 ) -> Result<Option<PaymentProof>> {
@@ -374,20 +392,10 @@ pub fn verify_transaction(
         return Ok(None);
     }
 
-    let pre = matching_token_balances(meta.get("preTokenBalances"), recipient, token_mint)?;
-    let post = matching_token_balances(meta.get("postTokenBalances"), recipient, token_mint)?;
-    let mut indices: Vec<u64> = pre.keys().chain(post.keys()).copied().collect();
-    indices.sort_unstable();
-    indices.dedup();
-
-    let delta: i128 = indices
-        .into_iter()
-        .map(|index| {
-            let before = i128::from(*pre.get(&index).unwrap_or(&0));
-            let after = i128::from(*post.get(&index).unwrap_or(&0));
-            after - before
-        })
-        .sum();
+    let delta = match token_mint {
+        Some(token_mint) => token_balance_delta(meta, recipient, token_mint)?,
+        None => native_balance_delta(meta, account_keys, recipient)?,
+    };
     if delta < i128::from(required_units) {
         return Ok(None);
     }
@@ -403,6 +411,61 @@ pub fn verify_transaction(
         block_time,
         amount_received_units,
     }))
+}
+
+fn token_balance_delta(meta: &Value, recipient: &str, token_mint: &str) -> Result<i128> {
+    let pre = matching_token_balances(meta.get("preTokenBalances"), recipient, token_mint)?;
+    let post = matching_token_balances(meta.get("postTokenBalances"), recipient, token_mint)?;
+    let mut indices: Vec<u64> = pre.keys().chain(post.keys()).copied().collect();
+    indices.sort_unstable();
+    indices.dedup();
+
+    Ok(indices
+        .into_iter()
+        .map(|index| {
+            let before = i128::from(*pre.get(&index).unwrap_or(&0));
+            let after = i128::from(*post.get(&index).unwrap_or(&0));
+            after - before
+        })
+        .sum())
+}
+
+fn native_balance_delta(meta: &Value, account_keys: &[Value], recipient: &str) -> Result<i128> {
+    let matching_indices = account_keys
+        .iter()
+        .enumerate()
+        .filter_map(|(index, key)| (account_pubkey(key) == Some(recipient)).then_some(index))
+        .collect::<Vec<_>>();
+    if matching_indices.len() != 1 {
+        return Ok(0);
+    }
+    let index = matching_indices[0];
+    let pre = meta
+        .get("preBalances")
+        .and_then(Value::as_array)
+        .ok_or_else(|| anyhow!("native SOL transaction is missing preBalances"))?;
+    let post = meta
+        .get("postBalances")
+        .and_then(Value::as_array)
+        .ok_or_else(|| anyhow!("native SOL transaction is missing postBalances"))?;
+    if pre.len() != account_keys.len() || post.len() != account_keys.len() {
+        bail!("native SOL balance arrays do not match account keys");
+    }
+    let before = pre[index]
+        .as_u64()
+        .ok_or_else(|| anyhow!("native SOL pre-balance is invalid"))?;
+    let after = post[index]
+        .as_u64()
+        .ok_or_else(|| anyhow!("native SOL post-balance is invalid"))?;
+    Ok(i128::from(after) - i128::from(before))
+}
+
+fn account_pubkey(key: &Value) -> Option<&str> {
+    match key {
+        Value::String(pubkey) => Some(pubkey),
+        Value::Object(object) => object.get("pubkey").and_then(Value::as_str),
+        _ => None,
+    }
 }
 
 fn matching_token_balances(
@@ -492,13 +555,13 @@ pub fn format_amount(units: u64, decimals: u8) -> String {
     format!("{whole}.{fraction}")
 }
 
-pub fn derive_reference(id: &str, recipient: &str, token_mint: &str, units: u64) -> String {
+pub fn derive_reference(id: &str, recipient: &str, token_mint: Option<&str>, units: u64) -> String {
     let mut hasher = Sha256::new();
     for value in [
         b"bounty-desk/reference/v1".as_slice(),
         id.as_bytes(),
         recipient.as_bytes(),
-        token_mint.as_bytes(),
+        token_mint.unwrap_or("native-sol").as_bytes(),
         &units.to_be_bytes(),
     ] {
         hasher.update((value.len() as u64).to_be_bytes());
@@ -510,28 +573,47 @@ pub fn derive_reference(id: &str, recipient: &str, token_mint: &str, units: u64)
 pub fn build_solana_pay_url(
     recipient: &str,
     amount: &str,
-    token_mint: &str,
+    token_mint: Option<&str>,
     reference: &str,
     label: &str,
     message: &str,
     memo: &str,
 ) -> Result<String> {
     validate_pubkey("recipient", recipient)?;
-    validate_pubkey("token mint", token_mint)?;
+    if let Some(token_mint) = token_mint {
+        validate_pubkey("token mint", token_mint)?;
+    }
     validate_pubkey("reference", reference)?;
-    let query = [
-        ("amount", amount),
-        ("spl-token", token_mint),
+    let mut fields = vec![("amount", amount)];
+    if let Some(token_mint) = token_mint {
+        fields.push(("spl-token", token_mint));
+    }
+    fields.extend([
         ("reference", reference),
         ("label", label),
         ("message", message),
         ("memo", memo),
-    ]
-    .into_iter()
-    .map(|(key, value)| format!("{key}={}", percent_encode(value)))
-    .collect::<Vec<_>>()
-    .join("&");
+    ]);
+    let query = fields
+        .into_iter()
+        .map(|(key, value)| format!("{key}={}", percent_encode(value)))
+        .collect::<Vec<_>>()
+        .join("&");
     Ok(format!("solana:{recipient}?{query}"))
+}
+
+fn validate_asset(native_sol: bool, token_mint: Option<&str>, decimals: u8) -> Result<()> {
+    match (native_sol, token_mint) {
+        (true, None) if decimals == SOL_DECIMALS => Ok(()),
+        (true, None) => bail!("native SOL invoices must use {SOL_DECIMALS} decimals"),
+        (false, Some(token_mint)) => validate_pubkey("token mint", token_mint),
+        (true, Some(_)) => bail!("choose either native SOL or an SPL token mint, not both"),
+        (false, None) => bail!("invoice asset is missing; choose native SOL or an SPL token mint"),
+    }
+}
+
+fn is_false(value: &bool) -> bool {
+    !*value
 }
 
 pub fn validate_pubkey(label: &str, value: &str) -> Result<()> {
@@ -643,6 +725,27 @@ mod tests {
         })
     }
 
+    fn native_transaction(recipient: &str, reference: &str, before: u64, after: u64) -> Value {
+        json!({
+            "slot": 43,
+            "blockTime": 1_700_000_001,
+            "transaction": {
+                "message": {
+                    "accountKeys": [
+                        {"pubkey": "So11111111111111111111111111111111111111112", "signer": true, "writable": true},
+                        {"pubkey": recipient, "signer": false, "writable": true},
+                        {"pubkey": reference, "signer": false, "writable": false}
+                    ]
+                }
+            },
+            "meta": {
+                "err": null,
+                "preBalances": [10_000_000_000_u64, before, 0],
+                "postBalances": [9_899_995_000_u64, after, 0]
+            }
+        })
+    }
+
     #[test]
     fn parses_decimal_amounts_without_floating_point() {
         assert_eq!(parse_amount("50", 6).unwrap(), 50_000_000);
@@ -655,8 +758,8 @@ mod tests {
 
     #[test]
     fn reference_is_deterministic_and_keyless() {
-        let first = derive_reference("inv-1", RECIPIENT, MAINNET_USDC_MINT, 50_000_000);
-        let second = derive_reference("inv-1", RECIPIENT, MAINNET_USDC_MINT, 50_000_000);
+        let first = derive_reference("inv-1", RECIPIENT, Some(MAINNET_USDC_MINT), 50_000_000);
+        let second = derive_reference("inv-1", RECIPIENT, Some(MAINNET_USDC_MINT), 50_000_000);
         assert_eq!(first, second);
         validate_pubkey("reference", &first).unwrap();
     }
@@ -668,7 +771,8 @@ mod tests {
             recipient: RECIPIENT.into(),
             amount: "50.00".into(),
             decimals: 6,
-            token_mint: MAINNET_USDC_MINT.into(),
+            token_mint: Some(MAINNET_USDC_MINT.into()),
+            native_sol: false,
             label: "BountyDesk".into(),
             message: "Invoice demo-1".into(),
             cluster: Cluster::MainnetBeta,
@@ -690,9 +794,15 @@ mod tests {
             "1000000",
             "51000000",
         );
-        let proof = verify_transaction(&tx, RECIPIENT, MAINNET_USDC_MINT, REFERENCE, 50_000_000)
-            .unwrap()
-            .unwrap();
+        let proof = verify_transaction(
+            &tx,
+            RECIPIENT,
+            Some(MAINNET_USDC_MINT),
+            REFERENCE,
+            50_000_000,
+        )
+        .unwrap()
+        .unwrap();
         assert_eq!(proof.amount_received_units, 50_000_000);
     }
 
@@ -700,28 +810,82 @@ mod tests {
     fn prompt_injection_memo_cannot_override_payment_checks() {
         let attacker = "So11111111111111111111111111111111111111112";
         let tx = transaction(attacker, MAINNET_USDC_MINT, REFERENCE, "0", "999999999999");
-        let proof =
-            verify_transaction(&tx, RECIPIENT, MAINNET_USDC_MINT, REFERENCE, 50_000_000).unwrap();
+        let proof = verify_transaction(
+            &tx,
+            RECIPIENT,
+            Some(MAINNET_USDC_MINT),
+            REFERENCE,
+            50_000_000,
+        )
+        .unwrap();
         assert!(proof.is_none());
     }
 
     #[test]
     fn rejects_wrong_reference_or_short_payment() {
         let tx = transaction(RECIPIENT, MAINNET_USDC_MINT, REFERENCE, "0", "49999999");
-        assert!(
-            verify_transaction(&tx, RECIPIENT, MAINNET_USDC_MINT, REFERENCE, 50_000_000,)
-                .unwrap()
-                .is_none()
-        );
         assert!(verify_transaction(
             &tx,
             RECIPIENT,
-            MAINNET_USDC_MINT,
+            Some(MAINNET_USDC_MINT),
+            REFERENCE,
+            50_000_000,
+        )
+        .unwrap()
+        .is_none());
+        assert!(verify_transaction(
+            &tx,
+            RECIPIENT,
+            Some(MAINNET_USDC_MINT),
             "SysvarRent111111111111111111111111111111111",
             1,
         )
         .unwrap()
         .is_none());
+    }
+
+    #[test]
+    fn verifies_native_sol_reference_recipient_and_amount() {
+        let tx = native_transaction(RECIPIENT, REFERENCE, 1_000_000_000, 1_100_000_000);
+        let proof = verify_transaction(&tx, RECIPIENT, None, REFERENCE, 100_000_000)
+            .unwrap()
+            .unwrap();
+        assert_eq!(proof.amount_received_units, 100_000_000);
+
+        assert!(
+            verify_transaction(&tx, RECIPIENT, None, REFERENCE, 100_000_001)
+                .unwrap()
+                .is_none()
+        );
+        assert!(verify_transaction(
+            &tx,
+            "SysvarRent111111111111111111111111111111111",
+            None,
+            REFERENCE,
+            1,
+        )
+        .unwrap()
+        .is_none());
+    }
+
+    #[test]
+    fn native_sol_invoice_omits_spl_token_parameter() {
+        let invoice = NewInvoice {
+            id: Some("native-demo".into()),
+            recipient: RECIPIENT.into(),
+            amount: "0.1".into(),
+            decimals: SOL_DECIMALS,
+            token_mint: None,
+            native_sol: true,
+            label: "BountyDesk".into(),
+            message: "Native SOL demo".into(),
+            cluster: Cluster::Devnet,
+        }
+        .build()
+        .unwrap();
+        assert!(invoice.solana_pay_url.contains("amount=0.1"));
+        assert!(!invoice.solana_pay_url.contains("spl-token="));
+        assert!(invoice.native_sol);
     }
 
     #[test]
@@ -734,7 +898,8 @@ mod tests {
             recipient: RECIPIENT.into(),
             amount: "1".into(),
             decimals: 6,
-            token_mint: MAINNET_USDC_MINT.into(),
+            token_mint: Some(MAINNET_USDC_MINT.into()),
+            native_sol: false,
             label: "BountyDesk".into(),
             message: "Test".into(),
             cluster: Cluster::Devnet,

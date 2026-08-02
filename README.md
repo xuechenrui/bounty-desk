@@ -1,10 +1,10 @@
 # BountyDesk
 
-BountyDesk is a custody-tier-1 Solana payment desk for autonomous agents. It creates uniquely referenced [Solana Pay](https://docs.solanapay.com/) SPL-token invoices, polls Solana RPC, and emits a receipt only after deterministic code verifies the reference, recipient, mint, and raw token balance increase.
+BountyDesk is a custody-tier-1 Solana payment desk for autonomous agents. It creates uniquely referenced [Solana Pay](https://docs.solanapay.com/) invoices for native SOL or SPL tokens, polls Solana RPC, and emits a receipt only after deterministic code verifies the reference, recipient, asset, and raw balance increase.
 
 It never creates a wallet, reads a seed phrase, stores a private key, signs a transaction, or sends a transaction. A payer reviews and signs the generated request in their own wallet.
 
-The included ZeroClaw skill and cron SOP turn this CLI into a working agent use case: request payment for completed bounty work, reconcile pending USDC invoices, and report new settlements without giving the agent custody of funds.
+The included ZeroClaw skill and cron SOP turn this CLI into a working agent use case: request payment for completed bounty work, reconcile pending SOL or token invoices, and report new settlements without giving the agent custody of funds.
 
 [Watch the 96-second showcase](docs/assets/bounty-desk-showcase.mp4)
 
@@ -27,7 +27,7 @@ flowchart LR
     C --> D["Payer wallet reviews and signs"]
     D --> E["Solana"]
     E --> F["Read-only RPC polling"]
-    F --> G{"Reference + recipient + mint + amount match?"}
+    F --> G{"Reference + recipient + asset + amount match?"}
     G -- No --> H["Fail closed / remain pending"]
     G -- Yes --> I["Receipt JSON"]
     I --> J["ZeroClaw SOP audit/report"]
@@ -64,6 +64,22 @@ Use a real **Solana** wallet address. An Ethereum/Base address is not interchang
 
 The JSON response contains `solana_pay_url`, `reference`, raw integer `amount_units`, and status `pending`. Decimal amounts never pass through floating point.
 
+For a native SOL invoice, select the asset explicitly with `--native-sol`; nine decimals are applied automatically:
+
+```sh
+./target/release/bounty-desk \
+  --db ./invoices.json \
+  create \
+  --id devnet-demo \
+  --recipient '<SOLANA_RECIPIENT>' \
+  --amount 0.001 \
+  --native-sol \
+  --network devnet \
+  --message 'BountyDesk live demo'
+```
+
+`--native-sol` and `--token-mint` are mutually exclusive. This makes ambiguous asset configuration a hard error.
+
 ## Reconcile
 
 ```sh
@@ -74,8 +90,8 @@ For each pending invoice, BountyDesk calls `getSignaturesForAddress(reference)` 
 
 - the transaction succeeded;
 - the invoice reference is an account key;
-- the configured recipient's token balance increased;
-- the token mint matches exactly; and
+- the configured recipient's native or token balance increased;
+- for SPL invoices, the token mint matches exactly; and
 - the raw balance increase is at least `amount_units`.
 
 Every other outcome stays pending. RPC failures are errors, not successful receipts.
@@ -108,7 +124,18 @@ It pays an attacker address instead of the configured recipient, so the same ver
   --amount-units 50000000
 ```
 
-The verifier never reads memo or instruction text. Seven unit tests cover exact decimal handling, deterministic keyless references, Solana Pay URL construction, successful verification, wrong recipient, wrong reference, underpayment, injection resistance, and atomic store persistence.
+The native SOL fixture uses the same verifier path without an SPL mint:
+
+```sh
+./target/debug/bounty-desk verify-fixture \
+  --file tests/fixtures/valid_native_sol_payment.json \
+  --recipient Vote111111111111111111111111111111111111111 \
+  --native-sol \
+  --reference 11111111111111111111111111111111 \
+  --amount-units 100000000
+```
+
+The verifier never reads memo or instruction text. Nine unit tests cover exact decimal handling, deterministic keyless references, native SOL and SPL Solana Pay URLs, successful verification, wrong recipient, wrong reference, underpayment, injection resistance, and atomic store persistence.
 
 ## ZeroClaw integration
 
