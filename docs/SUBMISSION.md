@@ -101,7 +101,13 @@ The recording is a timestamped replay of the real PTY session, not a slide deck 
 
 ## Superteam form copy
 
-Use the final Discord showcase URL as the primary submission URL because the bounty defines the showcase post as the submission. If the form offers extra fields, use:
+The current form asks for exactly three links. Use:
+
+- **Demo video link (required):** https://drive.google.com/file/d/1yc4fMAfihWi1uBv8c9rfHJXmKbkip3m7/view?usp=sharing
+- **One-pager link (optional):** https://github.com/xuechenrui/bounty-desk/blob/main/docs/SUBMISSION.md
+- **Supporting material (required):** `<DISCORD_SHOWCASE_URL>` after the showcase post is published; use https://github.com/xuechenrui/bounty-desk only as a fallback if the field must be saved before Discord is available.
+
+If the form exposes additional metadata, use:
 
 - **Title:** BountyDesk — non-custodial payments for autonomous ZeroClaw agents
 - **Repository:** https://github.com/xuechenrui/bounty-desk
