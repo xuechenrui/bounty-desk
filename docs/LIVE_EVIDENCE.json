@@ -1,0 +1,36 @@
+{
+  "captured_at": "2026-08-02T11:42:46Z",
+  "zeroclaw": {
+    "version": "0.8.3",
+    "agent": "bounty_desk",
+    "channel": "webhook.payments",
+    "model": "gpt-5.4-mini",
+    "codex_adapter_status": "completed",
+    "job": "list_existing_invoice",
+    "authentication_check": {
+      "invalid_signature_http_status": 401,
+      "valid_signature_http_status": 200,
+      "loopback_reply_captured": true
+    }
+  },
+  "invoice": {
+    "id": "live-demo-20260802",
+    "recipient": "EhqjzoHQcH41DhrKqyPtqtiEdRCNnkZAUZQzNSt31GY5",
+    "asset": "native SOL",
+    "amount": "0.000001",
+    "amount_lamports": 1000,
+    "cluster": "devnet",
+    "reference": "GTwfFf1UeZvY6GSnnqz1KBKfPKBQZ9oZMgHzHXj1MAiC",
+    "message": "BountyDesk live ZeroClaw demo",
+    "status": "pending",
+    "created_by_real_zeroclaw_tool_call": true,
+    "externally_signed": false
+  },
+  "local_artifact_sha256": {
+    "invoice_store": "20b12f83692fba9eb9dfc06c574a279cc3171cfee57060d37847394a9088f875",
+    "invoice_creation_tool_call": "c2ae6a4e3c8fdab15f857dbb581a7ba8bfa618f469f6c6c2a42f8e3e11d72184",
+    "authenticated_webhook_tool_call": "ac75e97970f6d0bc5c317ca465cad423611ebfb75ed100fb1dbc0e52b2da6f22"
+  },
+  "ci": "https://github.com/xuechenrui/bounty-desk/actions/runs/30746262754",
+  "security_boundary": "No wallet key was created, imported, read, or used; no transaction was signed or sent."
+}
