@@ -43,11 +43,11 @@ Point the `bounty_desk` agent at `kilocli.codex_adapter`. Before starting exactl
 
 ```sh
 export ZEROCLAW_CODEX_ADAPTER_STATE_DIR=/absolute/private/demo-state/codex-run-1
-export ZEROCLAW_CODEX_ALLOWED_COMMAND='bounty-desk --db "$BOUNTY_DESK_DB" create --id live-demo-20260802 --recipient APPROVED_SOLANA_ADDRESS --amount 0.000001 --native-sol --network devnet --message "BountyDesk live ZeroClaw demo"'
+export ZEROCLAW_CODEX_ALLOWED_COMMAND="/absolute/path/to/bounty-desk --db /absolute/private/invoices.json create --id live-demo-20260802 --recipient APPROVED_SOLANA_ADDRESS --amount 0.000001 --native-sol --network devnet --message 'BountyDesk live ZeroClaw demo'"
 export ZEROCLAW_CODEX_MODEL=gpt-5.4-mini
 ```
 
-The adapter discards the broader ZeroClaw transcript, generates a private JSON Schema whose command field is fixed to `ZEROCLAW_CODEX_ALLOWED_COMMAND`, and runs `codex exec` in an empty private directory with a read-only sandbox and ignored user config. It explicitly disables Codex's own shell tool, web search, apps, subagents, installed plugins, and remote plugin catalog; the model can only produce the structured response that ZeroClaw will inspect. The adapter then independently validates the last message as one JSON `shell` call whose command must exactly equal the approved value. An atomic claim prevents every retry or wrap-up from consuming a second Codex call. Any failed, malformed, or different command fails closed. This bridge uses the existing Codex CLI login but never copies or prints its credential.
+The adapter discards the broader ZeroClaw transcript and generates a private JSON Schema that fixes one `shell` call to `ZEROCLAW_CODEX_ALLOWED_COMMAND`. Because Codex strict structured outputs reject literal double quotes inside enum strings, use shell single quotes for grouped arguments in the approved command. The adapter runs `codex exec` in an empty private directory with a read-only sandbox and ignored user config. It explicitly disables Codex's own shell tool, web search, apps, subagents, installed plugins, and remote plugin catalog; the model can only produce the structured response that ZeroClaw will inspect. The adapter then independently validates the last message and requires the command to match the approved value byte-for-byte. An atomic claim prevents every retry or wrap-up from consuming a second Codex call. Any failed, malformed, or different command fails closed. Codex diagnostics stay in the private state directory as `codex-stderr.log`; do not commit that directory. This bridge uses the existing Codex CLI login but never copies or prints its credential.
 
 ## 2. Configure the authenticated channel
 

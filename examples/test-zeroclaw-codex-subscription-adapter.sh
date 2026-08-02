@@ -28,7 +28,7 @@ printf '%s\n' "$FAKE_CODEX_RESPONSE" >"$output"
 SH
 chmod +x "$fake_codex"
 
-approved='bounty-desk --db "$BOUNTY_DESK_DB" create --id adapter-test --recipient 11111111111111111111111111111111 --amount 0.000001 --native-sol --network devnet --message "adapter test"'
+approved="/opt/bounty-desk --db /tmp/invoices.json create --id adapter-test --recipient 11111111111111111111111111111111 --amount 0.000001 --native-sol --network devnet --message 'adapter test'"
 valid_response=$(python3 -c 'import json,sys; print(json.dumps({"tool_calls":[{"name":"shell","arguments":{"command":sys.argv[1]}}]}))' "$approved")
 
 calls=$test_root/calls
@@ -80,4 +80,20 @@ if printf 'bad prompt' | \
 fi
 
 [ "$(cat "$bad_state/codex-call.status")" = rejected ]
+
+quoted_state=$test_root/quoted-state
+calls_before=$(wc -l <"$calls" | tr -d ' ')
+if printf 'quoted command' | \
+  CODEX_BIN="$fake_codex" \
+  FAKE_CODEX_CALLS="$calls" \
+  FAKE_CODEX_ARGS="$args_log" \
+  FAKE_CODEX_RESPONSE='must not be used' \
+  ZEROCLAW_CODEX_ADAPTER_STATE_DIR="$quoted_state" \
+  ZEROCLAW_CODEX_ALLOWED_COMMAND='echo "quoted"' \
+  "$adapter" --print --model test-model - >/dev/null 2>&1; then
+  echo 'adapter accepted a double quote that Codex strict enums reject' >&2
+  exit 1
+fi
+[ "$(wc -l <"$calls" | tr -d ' ')" = "$calls_before" ]
+
 printf '%s\n' 'Codex subscription adapter tests passed'

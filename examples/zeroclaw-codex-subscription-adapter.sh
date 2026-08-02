@@ -28,6 +28,12 @@ allowed_command=${ZEROCLAW_CODEX_ALLOWED_COMMAND:-}
 [ -n "$state_dir" ] || die 'ZEROCLAW_CODEX_ADAPTER_STATE_DIR is required'
 [ -n "$allowed_command" ] || die 'ZEROCLAW_CODEX_ALLOWED_COMMAND is required'
 
+# Codex structured outputs reject a literal double quote inside a strict enum
+# string. Shell arguments that need grouping can use single quotes instead.
+case "$allowed_command" in
+  *\"*) die 'approved command must not contain double quotes; use shell single quotes for grouped arguments' ;;
+esac
+
 case "$state_dir" in
   /*) ;;
   *) die 'state directory must be an absolute path' ;;
@@ -48,7 +54,7 @@ if ! mkdir "$claim_dir" 2>/dev/null; then
   [ -f "$status_file" ] && [ "$(cat "$status_file")" = completed ] || \
     die 'the one permitted Codex call was already attempted but did not complete'
   printf '%s\n' \
-    'The single authorized Codex call has already been used. ZeroClaw executed the validated shell request; use the shell result as the task record.'
+    'The single authorized Codex call has already been used. ZeroClaw attempted the validated shell request; inspect the shell result for the execution outcome.'
   exit 0
 fi
 
@@ -65,21 +71,25 @@ fi
 
 private_workspace=$state_dir/codex-workspace
 raw_output=$state_dir/codex-last-message.txt
+codex_stderr=$state_dir/codex-stderr.log
 normalized_output=$state_dir/validated-tool-call.json
 output_schema=$state_dir/approved-tool-call.schema.json
+codex_prompt=$state_dir/codex-prompt.txt
 mkdir -p "$private_workspace"
 
 # Do not forward the full ZeroClaw transcript into a second agentic runtime.
 # The pre-approved command is the only datum Codex needs, and the generated
-# schema constrains the final response to that exact value.
+# schema constrains the final response to that exact value. A separate validator
+# below also requires a byte-for-byte match before ZeroClaw sees the request.
 cat >/dev/null
-python3 - "$output_schema" "$allowed_command" <<'PY'
+python3 - "$output_schema" "$codex_prompt" "$allowed_command" <<'PY'
 import json
 import pathlib
 import sys
 
 schema_path = pathlib.Path(sys.argv[1])
-allowed_command = sys.argv[2]
+prompt_path = pathlib.Path(sys.argv[2])
+allowed_command = sys.argv[3]
 schema = {
     "type": "object",
     "additionalProperties": False,
@@ -112,11 +122,14 @@ schema = {
     },
 }
 schema_path.write_text(json.dumps(schema) + "\n", encoding="utf-8")
+prompt_path.write_text(
+    "Return the single JSON object required by the output schema. "
+    "Do not call tools, inspect files, interpret the command, or add commentary.\n",
+    encoding="utf-8",
+)
 PY
 
-if ! printf '%s\n' \
-  'Return the single JSON object required by the output schema. Do not call tools, inspect files, or add commentary.' | \
-  "$codex_bin" exec \
+if ! "$codex_bin" exec \
   --ephemeral \
   --sandbox read-only \
   --skip-git-repo-check \
@@ -135,9 +148,9 @@ if ! printf '%s\n' \
   --model "$codex_model" \
   --output-schema "$output_schema" \
   --output-last-message "$raw_output" \
-  - >/dev/null; then
+  - <"$codex_prompt" >/dev/null 2>"$codex_stderr"; then
   printf '%s\n' failed >"$status_file"
-  die 'Codex CLI call failed; fail-closed marker prevents a retry'
+  die "Codex CLI call failed; inspect the private diagnostic at $codex_stderr"
 fi
 
 if ! python3 - "$raw_output" "$normalized_output" "$allowed_command" <<'PY'
