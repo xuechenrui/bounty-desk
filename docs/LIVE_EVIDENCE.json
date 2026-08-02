@@ -43,6 +43,6 @@
     "claims_live_settlement": false,
     "url": "https://github.com/xuechenrui/bounty-desk/releases/download/v0.2.0/bounty-desk-live-demo.mp4"
   },
-  "ci": "https://github.com/xuechenrui/bounty-desk/actions/runs/30746262754",
+  "ci": "https://github.com/xuechenrui/bounty-desk/actions/runs/30746819635",
   "security_boundary": "No wallet key was created, imported, read, or used; no transaction was signed or sent."
 }
