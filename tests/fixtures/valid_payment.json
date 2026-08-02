@@ -1,0 +1,32 @@
+{
+  "slot": 424242,
+  "blockTime": 1700000000,
+  "transaction": {
+    "message": {
+      "accountKeys": [
+        {"pubkey": "11111111111111111111111111111111", "signer": false, "writable": false},
+        {"pubkey": "Vote111111111111111111111111111111111111111", "signer": false, "writable": true}
+      ],
+      "instructions": []
+    }
+  },
+  "meta": {
+    "err": null,
+    "preTokenBalances": [
+      {
+        "accountIndex": 1,
+        "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "owner": "Vote111111111111111111111111111111111111111",
+        "uiTokenAmount": {"amount": "1000000", "decimals": 6}
+      }
+    ],
+    "postTokenBalances": [
+      {
+        "accountIndex": 1,
+        "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "owner": "Vote111111111111111111111111111111111111111",
+        "uiTokenAmount": {"amount": "51000000", "decimals": 6}
+      }
+    ]
+  }
+}

@@ -1,0 +1,5 @@
+/target/
+/invoices.json
+/invoices.json.tmp
+/.DS_Store
+/.zeroclaw/
