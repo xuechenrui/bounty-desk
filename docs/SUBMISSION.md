@@ -1,6 +1,6 @@
 # BountyDesk — ZeroClaw × Solana showcase submission
 
-> Submission status: the real Codex/ZeroClaw invoice-creation turn, authenticated webhook channel, and 36-second slide-free terminal video are verified. Final Discord and Superteam posts remain pending. The invoice is still unsigned and pending; this submission does not claim a live settlement.
+> Submission status: the real Codex/ZeroClaw invoice-creation turn, authenticated webhook channel, 36-second slide-free terminal video, and ZeroClaw Discord showcase are verified. The Superteam form is prepared and awaits final submission. The invoice is still unsigned and pending; this submission does not claim a live settlement.
 
 ## Discord-ready showcase post
 
@@ -64,7 +64,7 @@ The v0.2.0 release also includes an Apple Silicon binary archive with SHA-256 `3
 - Real, slide-free video (36 seconds, Google Drive): https://drive.google.com/file/d/1yc4fMAfihWi1uBv8c9rfHJXmKbkip3m7/view?usp=sharing
 - GitHub release mirror: https://github.com/xuechenrui/bounty-desk/releases/download/v0.2.0/bounty-desk-live-demo.mp4
 - Sanitized machine-readable run evidence: https://github.com/xuechenrui/bounty-desk/blob/main/docs/LIVE_EVIDENCE.json
-- ZeroClaw Discord `#solana-bounty` post URL: `<DISCORD_SHOWCASE_URL>`
+- ZeroClaw Discord `#solana-bounty` post URL: https://discord.com/channels/1472154792351760419/1527427886410109029/1533454418190667817
 
 The video truthfully stops at an unsigned, pending devnet invoice. A live wallet signature and reconciliation are an optional evidence upgrade, not something this submission claims to have completed.
 
@@ -96,23 +96,24 @@ The recording is a timestamped replay of the real PTY session, not a slide deck 
 - [x] Authenticated ZeroClaw webhook model turn: invalid HMAC returned 401, valid HMAC returned 200, and a loopback reply was captured.
 - [ ] Optional upgrade: externally signed Solana transaction and successful live reconciliation.
 - [x] Real slide-free agent/channel video no longer than three minutes.
-- [ ] `REQUIRED LIVE EVIDENCE`: showcase published in ZeroClaw Discord `#solana-bounty`.
+- [x] `REQUIRED LIVE EVIDENCE`: showcase published in ZeroClaw Discord `#solana-bounty`.
 - [ ] `REQUIRED LIVE EVIDENCE`: Superteam submission saved and visibly confirmed.
 
 ## Superteam form copy
 
-The current form asks for exactly three links. Use:
+Use these exact links in the current form:
 
+- **Link to Your Submission (required):** https://discord.com/channels/1472154792351760419/1527427886410109029/1533454418190667817
 - **Demo video link (required):** https://drive.google.com/file/d/1yc4fMAfihWi1uBv8c9rfHJXmKbkip3m7/view?usp=sharing
 - **One-pager link (optional):** https://github.com/xuechenrui/bounty-desk/blob/main/docs/SUBMISSION.md
-- **Supporting material (required):** `<DISCORD_SHOWCASE_URL>` after the showcase post is published; use https://github.com/xuechenrui/bounty-desk only as a fallback if the field must be saved before Discord is available.
+- **Supporting material (required):** https://discord.com/channels/1472154792351760419/1527427886410109029/1533454418190667817
 
 If the form exposes additional metadata, use:
 
 - **Title:** BountyDesk — non-custodial payments for autonomous ZeroClaw agents
 - **Repository:** https://github.com/xuechenrui/bounty-desk
 - **Release:** https://github.com/xuechenrui/bounty-desk/releases/tag/v0.2.0
-- **Showcase URL:** `<DISCORD_SHOWCASE_URL>`
+- **Showcase URL:** https://discord.com/channels/1472154792351760419/1527427886410109029/1533454418190667817
 - **Video URL:** https://drive.google.com/file/d/1yc4fMAfihWi1uBv8c9rfHJXmKbkip3m7/view?usp=sharing
 - **One-line summary:** A real ZeroClaw webhook agent creates Solana Pay invoices and reconciles native SOL or token payments through deterministic read-only RPC verification, while every signature remains in an external human wallet.
 
