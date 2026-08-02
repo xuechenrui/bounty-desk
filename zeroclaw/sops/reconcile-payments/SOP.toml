@@ -1,13 +1,13 @@
 [sop]
 name = "reconcile-payments"
 description = "Read-only Solana payment reconciliation for pending BountyDesk invoices"
-version = "0.1.0"
+version = "0.2.0"
 priority = "low"
 execution_mode = "auto"
 cooldown_secs = 60
 max_concurrent = 1
 admission_policy = "coalesce"
-agent = "default"
+agent = "bounty_desk"
 
 [[triggers]]
 type = "manual"

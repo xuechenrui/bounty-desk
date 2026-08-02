@@ -75,11 +75,13 @@ No model credential, wallet key, webhook secret, or paid model call was used.
 After the operator explicitly approves Codex subscription use, continue manually:
 
   $zeroclaw_bin --config-dir "$config_dir" auth login --model-provider openai-codex --import ~/.codex/auth.json
-  $zeroclaw_bin --config-dir "$config_dir" quickstart --model-provider openai-codex --model gpt-5.4-mini --agent default
-  $zeroclaw_bin --config-dir "$config_dir" skills install --agent default "$project_root/zeroclaw/skills/bounty-desk"
+  $zeroclaw_bin --config-dir "$config_dir" quickstart --model-provider openai-codex --model gpt-5.4-mini --agent bounty_desk
+  $zeroclaw_bin --config-dir "$config_dir" skills install --agent bounty_desk "$project_root/zeroclaw/skills/bounty-desk"
   $zeroclaw_bin --config-dir "$config_dir" config set channels.webhook.payments.secret
   $zeroclaw_bin --config-dir "$config_dir" config set channels.webhook.payments.enabled true
 
 The auth import can consume Codex subscription allowance. The secret command uses
 masked input. A human must review both steps; this script deliberately stops here.
+If the direct Codex transport fails before the model request, follow the checked
+subprocess-provider fallback in docs/WEBHOOK_DEMO.md.
 EOF

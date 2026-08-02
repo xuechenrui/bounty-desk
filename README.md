@@ -145,10 +145,11 @@ The repository contains stock-release artifacts:
 - [`zeroclaw/sops/reconcile-payments/SOP.toml`](zeroclaw/sops/reconcile-payments/SOP.toml) defines manual and cron triggers with coalescing concurrency.
 - [`zeroclaw/sops/reconcile-payments/SOP.md`](zeroclaw/sops/reconcile-payments/SOP.md) limits the run to the pinned reconciliation command and a receipt summary.
 - [`docs/WEBHOOK_DEMO.md`](docs/WEBHOOK_DEMO.md) wires the agent to ZeroClaw's authenticated webhook channel for a real HTTP ingress demo.
+- [`examples/zeroclaw-codex-subscription-adapter.sh`](examples/zeroclaw-codex-subscription-adapter.sh) provides an at-most-once Codex CLI bridge for ZeroClaw 0.8.3 when its direct Codex HTTP transport is unavailable. It accepts only one pre-approved shell command, byte-for-byte.
 - [`docs/SUBMISSION.md`](docs/SUBMISSION.md) maps every bounty requirement to the final Discord post, live-video shot list, and evidence gate.
 - [`docs/showcase.html`](docs/showcase.html) and [`tools/render_video.swift`](tools/render_video.swift) are the source and renderer for the public showcase video.
 
-Install the built binary in a path already allowed by the ZeroClaw shell policy, copy the skill/SOP bundles into the configured skill and SOP directories, set `BOUNTY_DESK_BIN` and `BOUNTY_DESK_DB` in the daemon's service environment, and change `agent = "default"` in `SOP.toml` if your configured agent alias differs.
+Install the built binary in a path already allowed by the ZeroClaw shell policy, copy the skill/SOP bundles into the configured skill and SOP directories, set `BOUNTY_DESK_BIN` and `BOUNTY_DESK_DB` in the daemon's service environment, and change `agent = "bounty_desk"` in `SOP.toml` if your configured agent alias differs.
 
 Validate before enabling the daemon:
 
@@ -165,7 +166,7 @@ export ZEROCLAW_DEMO_CONFIG_DIR="$HOME/.zeroclaw-bounty-desk-demo"
 ./examples/prepare-zeroclaw-demo.sh
 ```
 
-The script builds and tests BountyDesk, audits the skill, mounts and validates the SOP, and configures the webhook in a disabled state. It deliberately stops before Codex auth import, webhook-secret entry, channel enablement, or any model call.
+The script builds and tests BountyDesk, audits the skill, mounts and validates the SOP, and configures the webhook in a disabled state. It deliberately stops before Codex auth import, webhook-secret entry, channel enablement, or any model call. The optional subscription adapter and its fail-closed setup are documented in the webhook runbook; its state directory must be fresh for every recorded run.
 
 The cron uses a six-field expression and polls every five minutes. `admission_policy = "coalesce"` prevents overlapping scans. No on-chain side effect occurs during reconciliation.
 
