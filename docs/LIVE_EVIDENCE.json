@@ -41,7 +41,9 @@
     "source": "timestamped replay of the real PTY session",
     "contains_slides": false,
     "claims_live_settlement": false,
-    "url": "https://github.com/xuechenrui/bounty-desk/releases/download/v0.2.0/bounty-desk-live-demo.mp4"
+    "url": "https://drive.google.com/file/d/1yc4fMAfihWi1uBv8c9rfHJXmKbkip3m7/view?usp=sharing",
+    "github_release_mirror": "https://github.com/xuechenrui/bounty-desk/releases/download/v0.2.0/bounty-desk-live-demo.mp4",
+    "public_link_verified_without_login": true
   },
   "ci": "https://github.com/xuechenrui/bounty-desk/actions/runs/30746819635",
   "security_boundary": "No wallet key was created, imported, read, or used; no transaction was signed or sent."

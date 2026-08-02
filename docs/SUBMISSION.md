@@ -61,7 +61,8 @@ The v0.2.0 release also includes an Apple Silicon binary archive with SHA-256 `3
 
 **Live evidence**
 
-- Real, slide-free video (36 seconds): https://github.com/xuechenrui/bounty-desk/releases/download/v0.2.0/bounty-desk-live-demo.mp4
+- Real, slide-free video (36 seconds, Google Drive): https://drive.google.com/file/d/1yc4fMAfihWi1uBv8c9rfHJXmKbkip3m7/view?usp=sharing
+- GitHub release mirror: https://github.com/xuechenrui/bounty-desk/releases/download/v0.2.0/bounty-desk-live-demo.mp4
 - Sanitized machine-readable run evidence: https://github.com/xuechenrui/bounty-desk/blob/main/docs/LIVE_EVIDENCE.json
 - ZeroClaw Discord `#solana-bounty` post URL: `<DISCORD_SHOWCASE_URL>`
 
@@ -106,7 +107,7 @@ Use the final Discord showcase URL as the primary submission URL because the bou
 - **Repository:** https://github.com/xuechenrui/bounty-desk
 - **Release:** https://github.com/xuechenrui/bounty-desk/releases/tag/v0.2.0
 - **Showcase URL:** `<DISCORD_SHOWCASE_URL>`
-- **Video URL:** https://github.com/xuechenrui/bounty-desk/releases/download/v0.2.0/bounty-desk-live-demo.mp4
+- **Video URL:** https://drive.google.com/file/d/1yc4fMAfihWi1uBv8c9rfHJXmKbkip3m7/view?usp=sharing
 - **One-line summary:** A real ZeroClaw webhook agent creates Solana Pay invoices and reconciles native SOL or token payments through deterministic read-only RPC verification, while every signature remains in an external human wallet.
 
 ## Publication safety gate

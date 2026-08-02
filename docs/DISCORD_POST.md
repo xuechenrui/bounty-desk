@@ -3,7 +3,7 @@
 BountyDesk turns a stock ZeroClaw agent into a non-custodial payment desk. An authenticated webhook asks the agent to create an operator-approved charge; ZeroClaw invokes one exact allowlisted BountyDesk command and returns a uniquely referenced Solana Pay invoice. A cron/manual SOP can later reconcile it through read-only RPC.
 
 🎥 Real 36-second agent/channel run (no slides):
-https://github.com/xuechenrui/bounty-desk/releases/download/v0.2.0/bounty-desk-live-demo.mp4
+https://drive.google.com/file/d/1yc4fMAfihWi1uBv8c9rfHJXmKbkip3m7/view?usp=sharing
 
 💻 Repo and reproducible setup:
 https://github.com/xuechenrui/bounty-desk
