@@ -6,6 +6,10 @@ It never creates a wallet, reads a seed phrase, stores a private key, signs a tr
 
 The included ZeroClaw skill and cron SOP turn this CLI into a working agent use case: request payment for completed bounty work, reconcile pending USDC invoices, and report new settlements without giving the agent custody of funds.
 
+[Watch the 96-second showcase](docs/assets/bounty-desk-showcase.mp4)
+
+![BountyDesk showcase: Let agents get paid. Never give them a key.](docs/assets/bounty-desk-poster.png)
+
 ## Why this exists
 
 Freelance and bounty agents can do useful work unattended, but payment is normally a manual blind spot. Giving an LLM a hot-wallet key solves the wrong problem. BountyDesk keeps signing with humans while automating the safe, repetitive parts:
@@ -114,6 +118,7 @@ The repository contains stock-release artifacts:
 - [`zeroclaw/sops/reconcile-payments/SOP.toml`](zeroclaw/sops/reconcile-payments/SOP.toml) defines manual and cron triggers with coalescing concurrency.
 - [`zeroclaw/sops/reconcile-payments/SOP.md`](zeroclaw/sops/reconcile-payments/SOP.md) limits the run to the pinned reconciliation command and a receipt summary.
 - [`docs/WEBHOOK_DEMO.md`](docs/WEBHOOK_DEMO.md) wires the agent to ZeroClaw's authenticated webhook channel for a real HTTP ingress demo.
+- [`docs/showcase.html`](docs/showcase.html) and [`tools/render_video.swift`](tools/render_video.swift) are the source and renderer for the public showcase video.
 
 Install the built binary in a path already allowed by the ZeroClaw shell policy, copy the skill/SOP bundles into the configured skill and SOP directories, set `BOUNTY_DESK_BIN` and `BOUNTY_DESK_DB` in the daemon's service environment, and change `agent = "default"` in `SOP.toml` if your configured agent alias differs.
 

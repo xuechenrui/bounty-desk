@@ -1,5 +1,7 @@
 # Showcase: an agent gets paid without holding a key
 
+**Video:** [BountyDesk — 96-second narrated showcase](assets/bounty-desk-showcase.mp4)
+
 ## What it does
 
 BountyDesk closes the payment loop for autonomous freelance and bounty agents. A ZeroClaw agent creates a uniquely referenced Solana Pay request from operator-approved terms, hands the unsigned URL to the payer, and later reconciles the payment through read-only Solana RPC. It emits a receipt only after deterministic Rust code verifies the reference, recipient, token mint, and raw amount.
