@@ -12,6 +12,7 @@ cat >"$fake_codex" <<'SH'
 set -eu
 
 printf 'called\n' >>"$FAKE_CODEX_CALLS"
+printf '%s\n' "$*" >>"$FAKE_CODEX_ARGS"
 output=
 while [ "$#" -gt 0 ]; do
   if [ "$1" = '--output-last-message' ]; then
@@ -31,20 +32,28 @@ approved='bounty-desk --db "$BOUNTY_DESK_DB" create --id adapter-test --recipien
 valid_response=$(python3 -c 'import json,sys; print(json.dumps({"tool_calls":[{"name":"shell","arguments":{"command":sys.argv[1]}}]}))' "$approved")
 
 calls=$test_root/calls
+args_log=$test_root/args
 state=$test_root/state
 first=$(printf 'first ZeroClaw prompt' | \
   CODEX_BIN="$fake_codex" \
   FAKE_CODEX_CALLS="$calls" \
+  FAKE_CODEX_ARGS="$args_log" \
   FAKE_CODEX_RESPONSE="$valid_response" \
   ZEROCLAW_CODEX_ADAPTER_STATE_DIR="$state" \
   ZEROCLAW_CODEX_ALLOWED_COMMAND="$approved" \
   "$adapter" --print --model test-model -)
 
 [ "$first" = "$(printf '%s' "$valid_response" | python3 -c 'import json,sys; print(json.dumps(json.load(sys.stdin), separators=(",", ":")))')" ]
+grep -F 'features.remote_plugin=false' "$args_log" >/dev/null
+grep -F 'features.plugins=false' "$args_log" >/dev/null
+grep -F 'features.shell_tool=false' "$args_log" >/dev/null
+grep -F 'features.apps=false' "$args_log" >/dev/null
+grep -F 'features.multi_agent=false' "$args_log" >/dev/null
 
 second=$(printf 'summary prompt' | \
   CODEX_BIN="$fake_codex" \
   FAKE_CODEX_CALLS="$calls" \
+  FAKE_CODEX_ARGS="$args_log" \
   FAKE_CODEX_RESPONSE='must not be used' \
   ZEROCLAW_CODEX_ADAPTER_STATE_DIR="$state" \
   ZEROCLAW_CODEX_ALLOWED_COMMAND="$approved" \
@@ -61,6 +70,7 @@ bad_state=$test_root/bad-state
 if printf 'bad prompt' | \
   CODEX_BIN="$fake_codex" \
   FAKE_CODEX_CALLS="$calls" \
+  FAKE_CODEX_ARGS="$args_log" \
   FAKE_CODEX_RESPONSE='{"tool_calls":[{"name":"shell","arguments":{"command":"uname -a"}}]}' \
   ZEROCLAW_CODEX_ADAPTER_STATE_DIR="$bad_state" \
   ZEROCLAW_CODEX_ALLOWED_COMMAND="$approved" \

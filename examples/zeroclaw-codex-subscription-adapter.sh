@@ -123,7 +123,12 @@ if ! printf '%s\n' \
   --ignore-user-config \
   --config 'approval_policy="untrusted"' \
   --config 'web_search="disabled"' \
+  --config 'features.remote_plugin=false' \
+  --config 'features.plugins=false' \
+  --config 'features.shell_tool=false' \
+  --config 'features.apps=false' \
   --config 'agents.enabled=false' \
+  --config 'features.multi_agent=false' \
   --config 'allow_login_shell=false' \
   --color never \
   --cd "$private_workspace" \

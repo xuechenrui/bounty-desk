@@ -47,7 +47,7 @@ export ZEROCLAW_CODEX_ALLOWED_COMMAND='bounty-desk --db "$BOUNTY_DESK_DB" create
 export ZEROCLAW_CODEX_MODEL=gpt-5.4-mini
 ```
 
-The adapter discards the broader ZeroClaw transcript, generates a private JSON Schema whose command field is fixed to `ZEROCLAW_CODEX_ALLOWED_COMMAND`, and runs `codex exec` in an empty private directory with a read-only sandbox, untrusted-command approvals, disabled web search, disabled subagents, and ignored user config. It then independently validates the last message as one JSON `shell` call whose command must exactly equal the approved value. An atomic claim prevents every retry or wrap-up from consuming a second Codex call. Any failed, malformed, or different command fails closed. This bridge uses the existing Codex CLI login but never copies or prints its credential.
+The adapter discards the broader ZeroClaw transcript, generates a private JSON Schema whose command field is fixed to `ZEROCLAW_CODEX_ALLOWED_COMMAND`, and runs `codex exec` in an empty private directory with a read-only sandbox and ignored user config. It explicitly disables Codex's own shell tool, web search, apps, subagents, installed plugins, and remote plugin catalog; the model can only produce the structured response that ZeroClaw will inspect. The adapter then independently validates the last message as one JSON `shell` call whose command must exactly equal the approved value. An atomic claim prevents every retry or wrap-up from consuming a second Codex call. Any failed, malformed, or different command fails closed. This bridge uses the existing Codex CLI login but never copies or prints its credential.
 
 ## 2. Configure the authenticated channel
 
