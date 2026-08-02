@@ -145,6 +145,7 @@ The repository contains stock-release artifacts:
 - [`zeroclaw/sops/reconcile-payments/SOP.toml`](zeroclaw/sops/reconcile-payments/SOP.toml) defines manual and cron triggers with coalescing concurrency.
 - [`zeroclaw/sops/reconcile-payments/SOP.md`](zeroclaw/sops/reconcile-payments/SOP.md) limits the run to the pinned reconciliation command and a receipt summary.
 - [`docs/WEBHOOK_DEMO.md`](docs/WEBHOOK_DEMO.md) wires the agent to ZeroClaw's authenticated webhook channel for a real HTTP ingress demo.
+- [`docs/SUBMISSION.md`](docs/SUBMISSION.md) maps every bounty requirement to the final Discord post, live-video shot list, and evidence gate.
 - [`docs/showcase.html`](docs/showcase.html) and [`tools/render_video.swift`](tools/render_video.swift) are the source and renderer for the public showcase video.
 
 Install the built binary in a path already allowed by the ZeroClaw shell policy, copy the skill/SOP bundles into the configured skill and SOP directories, set `BOUNTY_DESK_BIN` and `BOUNTY_DESK_DB` in the daemon's service environment, and change `agent = "default"` in `SOP.toml` if your configured agent alias differs.
