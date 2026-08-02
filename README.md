@@ -157,6 +157,16 @@ zeroclaw skills audit zeroclaw/skills/bounty-desk
 zeroclaw sop validate reconcile-payments
 ```
 
+For a fail-closed, credential-free pre-flight of the exact demo configuration, point the script at a dedicated config directory outside the repository:
+
+```sh
+export ZEROCLAW_BIN=/absolute/path/to/zeroclaw
+export ZEROCLAW_DEMO_CONFIG_DIR="$HOME/.zeroclaw-bounty-desk-demo"
+./examples/prepare-zeroclaw-demo.sh
+```
+
+The script builds and tests BountyDesk, audits the skill, mounts and validates the SOP, and configures the webhook in a disabled state. It deliberately stops before Codex auth import, webhook-secret entry, channel enablement, or any model call.
+
 The cron uses a six-field expression and polls every five minutes. `admission_policy = "coalesce"` prevents overlapping scans. No on-chain side effect occurs during reconciliation.
 
 For a single-command, network-free demonstration of invoice creation, valid settlement verification, and a rejected prompt-injection transaction, run `./examples/offline-demo.sh`.

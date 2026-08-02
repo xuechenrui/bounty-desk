@@ -4,6 +4,18 @@ The stock ZeroClaw webhook channel is a real HTTP ingress for the BountyDesk age
 
 This runbook deliberately keeps the webhook secret and model credentials outside the repository.
 
+## 0. Credential-free pre-flight
+
+Before importing any model credential, run the checked pre-flight against a dedicated config directory outside the repository:
+
+```sh
+export ZEROCLAW_BIN=/absolute/path/to/zeroclaw
+export ZEROCLAW_DEMO_CONFIG_DIR="$HOME/.zeroclaw-bounty-desk-demo"
+./examples/prepare-zeroclaw-demo.sh
+```
+
+This verifies ZeroClaw 0.8.3, the release build, all tests, the skill audit, the SOP, and a disabled webhook on port 8090 at `/payments`. It neither reads nor imports `~/.codex/auth.json`.
+
 ## 1. Configure a model and agent
 
 Use a model provider supported by your ZeroClaw installation. The parent agent alias must match `agent = "default"` in the reconciliation SOP, or the SOP field must be changed to your alias.
